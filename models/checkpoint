@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/user/PycharmProjects/Pandas Practice/dogsvscats/models/dogsvscats-0.001.model"
+all_model_checkpoint_paths: "/home/user/PycharmProjects/Pandas Practice/dogsvscats/models/dogsvscats-0.001.model"
