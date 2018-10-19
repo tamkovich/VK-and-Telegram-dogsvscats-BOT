@@ -76,10 +76,4 @@ class NeuralModel:
             },
         }
         print(f'With {response["answer"]["likelihood"]} % it is a {response["answer"]["answer"]}')
-        _remove_file(file)
         return response
-
-
-def _remove_file(file):
-    if os.path.exists(f"images/{file}"):
-        os.remove(f"images/{file}")

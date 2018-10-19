@@ -1,6 +1,8 @@
-import vkapi
-import os
 import importlib
+import os
+
+from logic_application.telegramapi import Telegram
+from logic_application.vkapi import Vk
 from command_system import command_list
 
 
@@ -70,21 +72,55 @@ def get_answer(action, content=None):
     return message, attachment, file
 
 
-def create_answer(data, token):
+def create_answer(data, token, messanger=None):
+    load_modules()
+    if messanger == 0:
+        create_answer_vk(data, token)
+    elif messanger == 1:
+        create_answer_tg(data, token)
+
+
+def _action_detect(action, data_text):
+    text = None
+    if action.startswith('/'):
+        action = action.split(' ')[0]
+        text = data_text[len(action):].strip()
+    return action, text
+
+
+def create_answer_vk(data, token):
+    vk = Vk(token=token)
     user_id = data["user_id"]
     action = data["body"]
     attachments = data.get('attachments')
-    text = None
+
     # распознование команд
-    if action.startswith('/'):
-        action = action.split(' ')[0]
-        text = data["body"][len(action):].strip()
-    load_modules()
+    action, text = _action_detect(action, data["body"])
     # распознование фото
     if attachments:
         action = '$'
         text = list(map(lambda p: p['photo']['photo_604'], attachments))
     elif action == '$':
         action = 'помощь'
-    message, attachment, file = get_answer(action, text)
-    vkapi.send_message(user_id, token, message, attachment, file)
+
+    message, attachment, file = get_answer(action.lower(), text)
+    vk.send_message(user_id, message, attachment, file)
+
+
+def create_answer_tg(data, token):
+    tg = Telegram(token)
+    user_id = data["chat"]["id"]
+    action = data.get("text", '')
+    attachments = data.get('photo')
+
+    # распознование команд
+    action, text = _action_detect(action, action)
+    # распознование фото
+    if attachments:
+        action = '$'
+        text = [tg.get_file_url(attachments[-1]['file_id'])]
+    elif action == '$':
+        action = 'помощь'
+
+    message, attachment, file = get_answer(action.lower(), text)
+    tg.send_message(user_id, message, attachment, file)
